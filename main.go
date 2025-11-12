@@ -21,12 +21,43 @@ func getProducts(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", 400)
+		http.Error(w, "Get method required", 400)
 		return
 	}
 
 	encoder := json.NewEncoder(w)
 	encoder.Encode(ProductsList)
+}
+
+func createProduct(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")             // Setting content type to JSON
+	w.Header().Set("Access-Control-Allow-Origin", "*")             // Allowing CORS for all origins
+	w.Header().Set("Access-Control-Allow-Methods", "POST")         // Allowing only POST method
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type") // Allowing Content-Type header
+
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	if r.Method != http.MethodPost {
+		http.Error(w, "Post method required", 400)
+		return
+	}
+
+	deocder := json.NewDecoder(r.Body)
+	var newProduct Product
+	err := deocder.Decode(&newProduct)
+	if err != nil {
+		http.Error(w, "Invalid request payload", 400)
+		return
+	}
+
+	newProduct.ID = len(ProductsList) + 1
+
+	w.WriteHeader(201)
+	ProductsList = append(ProductsList, newProduct)
+	json.NewEncoder(w).Encode(newProduct)
 }
 
 func init() {
@@ -38,7 +69,6 @@ func init() {
 		Description: "Description for product 1",
 		Price:       19.99,
 	}
-
 	p2 := Product{
 		ID:          2,
 		Image:       "image2.jpg",
@@ -53,7 +83,6 @@ func init() {
 		Description: "Description for product 3",
 		Price:       39.99,
 	}
-
 	p4 := Product{
 		ID:          4,
 		Image:       "image4.jpg",
@@ -61,7 +90,6 @@ func init() {
 		Description: "Description for product 4",
 		Price:       49.99,
 	}
-
 	ProductsList = []Product{p1, p2, p3, p4}
 }
 
@@ -70,6 +98,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/getProducts", getProducts)
+	mux.HandleFunc("/createProduct", createProduct)
 
 	err := http.ListenAndServe(":80", mux)
 	if err != nil {
