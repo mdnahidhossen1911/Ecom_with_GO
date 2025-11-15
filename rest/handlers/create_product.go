@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"ecom_project/util"
 	"ecom_project/database"
+	"ecom_project/util"
 	"encoding/json"
 	"net/http"
 )
@@ -15,7 +15,8 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request payload", 400)
 		return
 	}
-	newProduct.ID = len(database.ProductsList) + 1
-	database.ProductsList = append(database.ProductsList, newProduct)
-	util.SendJSONResponse(w, newProduct, 201)
+
+	CreateProduct := database.Stor(newProduct)
+
+	util.SendData(w, CreateProduct, 201)
 }
