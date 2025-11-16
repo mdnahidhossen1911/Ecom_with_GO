@@ -2,13 +2,27 @@ package rest
 
 import (
 	"ecom_project/config"
+	"ecom_project/rest/handlers/product"
+	"ecom_project/rest/handlers/user"
 	"ecom_project/rest/middleware"
 	"fmt"
 	"net/http"
 	"os"
 )
 
-func Start(config *config.Config) {
+type Server struct {
+	ProductHandler *product.Handler
+	UserHandler    *user.Handler
+}
+
+func NewServer(productHandler *product.Handler, userHandler *user.Handler) *Server {
+	return &Server{
+		ProductHandler: productHandler,
+		UserHandler:    userHandler,
+	}
+}
+
+func (Server *Server) Start(config *config.Config) {
 
 	manager := middleware.NewManager()
 	mux := http.NewServeMux()
@@ -17,7 +31,8 @@ func Start(config *config.Config) {
 	manager.Use(middleware.Preflight)
 	manager.Use(middleware.Logger)
 
-	initRoutes(mux, manager)
+	Server.ProductHandler.RegisterRoutes(mux, manager)
+	Server.UserHandler.RegisterRoutes(mux, manager)
 
 	wrappedMux := manager.ApplyToMux(mux)
 

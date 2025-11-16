@@ -1,4 +1,4 @@
-package handlers
+package product
 
 import (
 	"ecom_project/database"
@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func CreateProduct(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	deocder := json.NewDecoder(r.Body)
 	var newProduct database.Product
 	err := deocder.Decode(&newProduct)
