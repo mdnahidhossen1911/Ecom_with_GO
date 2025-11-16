@@ -1,7 +1,6 @@
 package user
 
 import (
-	"ecom_project/config"
 	"ecom_project/database"
 	"ecom_project/util"
 	"encoding/json"
@@ -31,7 +30,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jwt, error := util.CreateJwt(config.GetConfig().JwtSecureKey, util.Payload{
+	jwt, error := util.CreateJwt(h.middleware.GetJwtSecret(), util.Payload{
 		Sub:     validuser.ID,
 		Name:    validuser.Name,
 		Email:   validuser.Email,
@@ -39,7 +38,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if error != nil {
-		fmt.Println(err)
+		fmt.Println(error)
 		return
 	}
 

@@ -5,17 +5,19 @@ import (
 	"ecom_project/rest"
 	"ecom_project/rest/handlers/product"
 	"ecom_project/rest/handlers/user"
+	"ecom_project/rest/middleware"
 )
 
 func Serve() {
 
 	config := config.GetConfig()
 
-	productsHandler := product.NewHandler()
-	userHandler := user.NewHandler()
+	middleware := middleware.NewConfigMiddleware(config)
 
-	server := rest.NewServer(productsHandler, userHandler)
+	productsHandler := product.NewHandler(middleware)
+	userHandler := user.NewHandler(middleware)
 
-	server.Start(config)
+	server := rest.NewServer(config,productsHandler, userHandler)
+	server.Start()
 
 }
