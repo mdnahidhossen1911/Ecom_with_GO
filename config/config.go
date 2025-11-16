@@ -10,9 +10,10 @@ import (
 var Configuration Config
 
 type Config struct {
-	Version     string
-	ServiceName string
-	Port        string
+	Version      string
+	ServiceName  string
+	Port         string
+	JwtSecureKey string
 }
 
 func loadConfig() {
@@ -48,12 +49,20 @@ func loadConfig() {
 		os.Exit(1)
 	}
 
+	jwtSecurekey := os.Getenv("JWT_SECURE_KEY")
+
+	if jwtSecurekey == "" {
+		fmt.Println("JWT Secure Key not set in environment")
+		os.Exit(1)
+	}
+
 	fmt.Printf("Configuration loaded: \nVersion=%s,\nServiceName=%s,\nPort=%s\n", version, serviceName, port)
 
 	Configuration = Config{
-		Version:     version,
-		ServiceName: serviceName,
-		Port:        port,
+		Version:      version,
+		ServiceName:  serviceName,
+		Port:         port,
+		JwtSecureKey: jwtSecurekey,
 	}
 }
 

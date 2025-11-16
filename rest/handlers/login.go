@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"ecom_project/config"
 	"ecom_project/database"
 	"ecom_project/util"
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -28,6 +30,19 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		util.SendError(w, "Invaild Cradiential", http.StatusNotFound)
 		return
 	}
-	util.SendData(w, validuser, 200)
+
+	jwt, error := util.CreateJwt(config.GetConfig().JwtSecureKey, util.Payload{
+		Sub:     validuser.ID,
+		Name:    validuser.Name,
+		Email:   validuser.Email,
+		IsOwner: validuser.IsOwner,
+	})
+
+	if error != nil {
+		fmt.Println(err)
+		return
+	}
+
+	util.SendData(w, jwt, 200)
 
 }

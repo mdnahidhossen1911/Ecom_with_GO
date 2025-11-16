@@ -11,13 +11,13 @@ func initRoutes(mux *http.ServeMux, manager *middleware.Manager) {
 	mux.Handle("GET /products",
 		manager.Apply(
 			http.HandlerFunc(handlers.GetProducts),
-			middleware.Demo,
 		),
 	)
 
 	mux.Handle("POST /products",
 		manager.Apply(
 			http.HandlerFunc(handlers.CreateProduct),
+			middleware.AuthenticateJWT,
 		),
 	)
 
@@ -30,12 +30,14 @@ func initRoutes(mux *http.ServeMux, manager *middleware.Manager) {
 	mux.Handle("PUT /products/{productID}",
 		manager.Apply(
 			http.HandlerFunc(handlers.UpdateProduct),
+			middleware.AuthenticateJWT,
 		),
 	)
 
 	mux.Handle("DELETE /products/{productID}",
 		manager.Apply(
 			http.HandlerFunc(handlers.DeleteProduct),
+			middleware.AuthenticateJWT,
 		),
 	)
 
@@ -45,7 +47,7 @@ func initRoutes(mux *http.ServeMux, manager *middleware.Manager) {
 		),
 	)
 
-		mux.Handle("POST /users/login",
+	mux.Handle("POST /users/login",
 		manager.Apply(
 			http.HandlerFunc(handlers.Login),
 		),
