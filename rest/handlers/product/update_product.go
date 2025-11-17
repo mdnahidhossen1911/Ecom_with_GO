@@ -1,33 +1,42 @@
 package product
 
 import (
-	"ecom_project/database"
+	"ecom_project/repo"
 	"ecom_project/util"
 	"encoding/json"
 	"net/http"
-	"strconv"
 )
 
 func (h *Handler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 
 	id := r.PathValue("productID")
 
-	productID, err := strconv.Atoi(id)
-	if err != nil {
-		http.Error(w, "Invalid product ID", http.StatusBadRequest)
+	if id == "" {
+		util.SendError(w, "Product ID is required", http.StatusBadRequest)
 		return
 	}
 
-	deocder := json.NewDecoder(r.Body)
-	var newProduct database.Product
-	err = deocder.Decode(&newProduct)
+	decoder := json.NewDecoder(r.Body)
+	var newProduct ReqCreateProduct
+	
+	err := decoder.Decode(&newProduct)
 	if err != nil {
-		http.Error(w, "Invalid request payload", 400)
+		util.SendError(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
 
-	newProduct.ID = productID
-	UpdateProduct := database.Update(newProduct)
+	UpdateProduct, err := h.productRepo.Update(repo.Product{
+		ID:          id,
+		Title:       newProduct.Title,
+		Description: newProduct.Description,
+		Price:       newProduct.Price,
+		ImageURL:    newProduct.ImageURL,
+	})
+	if err != nil {
+		util.SendError(w, "Failed to update product: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	if UpdateProduct == nil {
 		util.SendError(w, "Product not found", http.StatusNotFound)
 		return

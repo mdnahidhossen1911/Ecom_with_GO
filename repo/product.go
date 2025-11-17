@@ -1,6 +1,10 @@
 package repo
 
-import "github.com/google/uuid"
+import (
+	"errors"
+
+	"github.com/google/uuid"
+)
 
 type Product struct {
 	ID          string  `json:"id"`
@@ -14,7 +18,7 @@ type ProductRepo interface {
 	Create(product Product) (*Product, error)
 	Get(productID string) (*Product, error)
 	List() ([]*Product, error)
-	Delete(productID string) error
+	Delete(productID string) error 
 	Update(pr Product) (*Product, error)
 }
 
@@ -30,6 +34,11 @@ func NewProductRepo() ProductRepo {
 }
 
 func (p *productRepo) Create(product Product) (*Product, error) {
+
+	if product.ID != "" {
+		return &product, nil
+	}
+
 	product.ID = uuid.New().String()
 	p.productList = append(p.productList, &product)
 	return &product, nil
@@ -41,7 +50,7 @@ func (p *productRepo) Get(productID string) (*Product, error) {
 			return prod, nil
 		}
 	}
-	return nil, nil
+	return nil, errors.New("product not found")
 }
 
 func (p *productRepo) List() ([]*Product, error) {
@@ -63,9 +72,10 @@ func (p *productRepo) Update(pr Product) (*Product, error) {
 	for index, prod := range p.productList {
 		if prod.ID == pr.ID {
 			p.productList[index] = &pr
+			return &pr, nil
 		}
 	}
-	return &pr, nil
+	return &pr, errors.New("product not found")
 }
 
 func generateProduct(r *productRepo) {

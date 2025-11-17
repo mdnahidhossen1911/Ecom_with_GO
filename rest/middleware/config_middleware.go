@@ -12,9 +12,3 @@ func NewConfigMiddleware(config *config.Config) *ConfigMiddleware {
 	}
 }
 
-func (cm *ConfigMiddleware) GetJwtSecret() string {
-	if cm == nil || cm.config == nil {
-		return ""
-	}
-	return cm.config.JwtSecureKey
-}

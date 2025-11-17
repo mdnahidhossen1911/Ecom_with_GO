@@ -1,7 +1,6 @@
 package user
 
 import (
-	"ecom_project/database"
 	"ecom_project/util"
 	"encoding/json"
 	"fmt"
@@ -24,13 +23,13 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	validuser := database.FindUser(user.Email, user.Password)
-	if validuser == nil {
-		util.SendError(w, "Invaild Cradiential", http.StatusNotFound)
+	validuser, err := h.repo.Find(user.Email, user.Password)
+	if err != nil {
+		util.SendError(w, "Invalid Credential", http.StatusNotFound)
 		return
 	}
 
-	jwt, error := util.CreateJwt(h.middleware.GetJwtSecret(), util.Payload{
+	jwt, error := util.CreateJwt(h.cnf.JwtSecureKey, util.Payload{
 		Sub:     validuser.ID,
 		Name:    validuser.Name,
 		Email:   validuser.Email,
