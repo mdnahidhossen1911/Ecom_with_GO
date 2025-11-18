@@ -7,7 +7,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var Configuration Config
+var configuration *Config
 
 type Config struct {
 	Version      string
@@ -58,7 +58,7 @@ func loadConfig() {
 
 	fmt.Printf("Configuration loaded: \nVersion=%s,\nServiceName=%s,\nPort=%s\n", version, serviceName, port)
 
-	Configuration = Config{
+	configuration = &Config{
 		Version:      version,
 		ServiceName:  serviceName,
 		Port:         port,
@@ -67,6 +67,8 @@ func loadConfig() {
 }
 
 func GetConfig() *Config {
-	loadConfig()
-	return &Configuration
+	if configuration == nil {
+		loadConfig()
+	}
+	return configuration
 }

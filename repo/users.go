@@ -2,16 +2,20 @@ package repo
 
 import (
 	"errors"
+	"fmt"
+	"time"
 
-	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 )
 
 type User struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	IsOwner  bool   `json:"is_owner"`
+	ID        string    `json:"id" db:"id"`
+	Name      string    `json:"name" db:"name"`
+	Email     string    `json:"email" db:"email"`
+	Password  string    `json:"password" db:"password"`
+	IsOwner   bool      `json:"is_owner" db:"is_owner"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
 }
 
 type UserRepo interface {
@@ -25,91 +29,148 @@ type UserRepo interface {
 }
 
 type userRepo struct {
-	users []User
+	dbCon *sqlx.DB
 }
 
-func NewUserRepo() UserRepo {
-	return &userRepo{}
+func NewUserRepo(dbCon *sqlx.DB) UserRepo {
+	return &userRepo{
+		dbCon: dbCon,
+	}
 }
 
 func (u *userRepo) Create(user User) (*User, error) {
+
+	query := `INSERT INTO users (name, email, password, is_owner) 
+	VALUES (:name, :email, :password, :is_owner)
+	 RETURNING id`
+
+	rows, err := u.dbCon.NamedQuery(query, user)
+	if err != nil {
+		return nil, err
+	}
+
+	if rows.Next() {
+		err = rows.Scan(&user.ID)
+	}
 
 	if user.ID != "" {
 		return &user, nil
 	}
 
-	user.ID = uuid.New().String()
-	u.users = append(u.users, user)
-
 	return &user, nil
 }
 
 func (u *userRepo) Find(email string, password string) (*User, error) {
-	for _, usr := range u.users {
-		if usr.Email == email && usr.Password == password {
-			return &usr, nil
-		}
+
+	fmt.Println("Email:", email, "Password:", password)
+
+	query := `
+		SELECT id, name, email, password, is_owner, created_at, updated_at
+		FROM users
+		WHERE email = $1 AND password = $2
+		LIMIT 1;
+	`
+
+	var user User
+
+	err := u.dbCon.Get(&user, query, email, password)
+	if err != nil {
+		return nil, errors.New("user not found " + err.Error())
 	}
-	return nil, errors.New("user not found")
+
+	return &user, nil
 }
 
 func (u *userRepo) Get(userID string) (*User, error) {
-	for _, usr := range u.users {
-		if usr.ID == userID {
-			return &usr, nil
-		}
+	query := `
+		SELECT id, name, email, password, is_owner, created_at, updated_at
+		FROM users
+		WHERE id = $1
+		LIMIT 1;
+	`
+
+	var user User
+
+	err := u.dbCon.Get(&user, query, userID)
+	if err != nil {
+		return nil, errors.New("user not found")
 	}
-	return nil, errors.New("user not found")
+
+	return &user, nil
 }
 
 func (u *userRepo) List() ([]*User, error) {
-	var userList []*User
-	for i := range u.users {
-		userList = append(userList, &u.users[i])
+	query := `
+		SELECT id, name, email, password, is_owner, created_at, updated_at
+		FROM users;
+	`
+
+	var users []*User
+
+	err := u.dbCon.Select(&users, query)
+	if err != nil {
+		return nil, err
 	}
-	return userList, nil
+
+	return users, nil
 }
 
 func (u *userRepo) Update(user User) (*User, error) {
-	for index, usr := range u.users {
-		if usr.ID == user.ID {
-			u.users[index] = user
-			return &user, nil
-		}
+	query := `
+		UPDATE users
+		SET 
+			name = $1,
+			email = $2,
+			password = $3,
+			is_owner = $4,
+			updated_at = NOW()
+		WHERE id = $5
+		RETURNING id, name, email, password, is_owner, created_at, updated_at;
+	`
+
+	var updatedUser User
+
+	err := u.dbCon.QueryRow(
+		query,
+		user.Name,
+		user.Email,
+		user.Password,
+		user.IsOwner,
+		user.ID,
+	).Scan(
+		&updatedUser.ID,
+		&updatedUser.Name,
+		&updatedUser.Email,
+		&updatedUser.Password,
+		&updatedUser.IsOwner,
+	)
+
+	if err != nil {
+		return nil, errors.New("user not found")
 	}
-	return nil, errors.New("user not found")
+
+	return &updatedUser, nil
 }
 
 func (u *userRepo) Delete(userID string) error {
-	var tempList []User
-	for _, usr := range u.users {
-		if usr.ID != userID {
-			tempList = append(tempList, usr)
-		}
+	query := `
+		DELETE FROM users
+		WHERE id = $1;
+	`
+
+	result, err := u.dbCon.Exec(query, userID)
+	if err != nil {
+		return err
 	}
-	u.users = tempList
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return errors.New("user not found")
+	}
+
 	return nil
 }
-
-// func CreateUser(user User) (*User, error) {
-// 	for _, u := range users {
-// 		if u.Email == user.Email {
-// 			return nil, fmt.Errorf("email already exists")
-// 		}
-// 	}
-
-// 	user.ID = uuid.New().String()
-// 	users = append(users, user)
-// 	return &users[len(users)-1], nil
-// }
-
-// func FindUser(email string, password string) *User {
-
-// 	for _, usr := range users {
-// 		if usr.Email == email && usr.Password == password {
-// 			return &usr
-// 		}
-// 	}
-
-// 	return nil
-// }

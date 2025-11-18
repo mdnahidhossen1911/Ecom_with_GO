@@ -25,10 +25,12 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	newPassword := util.SecPass(newUser.Password)
+
 	user, err := h.repo.Create(repo.User{
 		Name:     newUser.Name,
 		Email:    newUser.Email,
-		Password: newUser.Password,
+		Password: newPassword,
 		IsOwner:  newUser.IsOwner,
 	})
 

@@ -23,17 +23,21 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	validuser, err := h.repo.Find(user.Email, user.Password)
+	newPassword := util.SecPass(user.Password)
+
+	validuser, err := h.repo.Find(user.Email, newPassword)
 	if err != nil {
-		util.SendError(w, "Invalid Credential", http.StatusNotFound)
+		util.SendError(w, "Invalid Credential"+err.Error(), http.StatusNotFound)
 		return
 	}
 
 	jwt, error := util.CreateJwt(h.cnf.JwtSecureKey, util.Payload{
-		Sub:     validuser.ID,
-		Name:    validuser.Name,
-		Email:   validuser.Email,
-		IsOwner: validuser.IsOwner,
+		Sub:       validuser.ID,
+		Name:      validuser.Name,
+		Email:     validuser.Email,
+		IsOwner:   validuser.IsOwner,
+		CreatedAt: validuser.CreatedAt.String(),
+		UpdatedAt: validuser.UpdatedAt.String(),
 	})
 
 	if error != nil {
