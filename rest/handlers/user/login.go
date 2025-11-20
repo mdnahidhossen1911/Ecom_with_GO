@@ -27,7 +27,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	validuser, err := h.repo.Find(user.Email, newPassword)
 	if err != nil {
-		util.SendError(w, "Invalid Credential"+err.Error(), http.StatusNotFound)
+		util.SendError(w, "Invalid Credential "+err.Error(), http.StatusNotFound)
 		return
 	}
 

@@ -15,14 +15,14 @@ func Serve() {
 
 	config := config.GetConfig()
 
-	db, err := db.NewDBConnection()
+	db, err := db.NewDBConnection(config.DBConfig)
 	if err != nil {
 		fmt.Println("Failed to connect to the database:", err)
 		return
 	}
 
 	userRepo := repo.NewUserRepo(db)
-	productRepo := repo.NewProductRepo()
+	productRepo := repo.NewProductRepo(db)
 
 	middleware := middleware.NewConfigMiddleware(config)
 
