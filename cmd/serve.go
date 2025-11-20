@@ -9,20 +9,29 @@ import (
 	"ecom_project/rest/handlers/user"
 	"ecom_project/rest/middleware"
 	"fmt"
+	"os"
 )
 
 func Serve() {
 
 	config := config.GetConfig()
 
-	db, err := db.NewDBConnection(config.DBConfig)
+	dbCon, err := db.NewDBConnection(config.DBConfig)
 	if err != nil {
 		fmt.Println("Failed to connect to the database:", err)
+		os.Exit(1)
 		return
 	}
 
-	userRepo := repo.NewUserRepo(db)
-	productRepo := repo.NewProductRepo(db)
+	error := db.MigrateDB(dbCon, "./migrations")
+	if error != nil {
+		fmt.Println("Failed to migrate the database:", error)
+		os.Exit(1)
+		return
+	}
+
+	userRepo := repo.NewUserRepo(dbCon)
+	productRepo := repo.NewProductRepo(dbCon)
 
 	middleware := middleware.NewConfigMiddleware(config)
 
