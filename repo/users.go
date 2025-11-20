@@ -2,7 +2,6 @@ package repo
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -61,8 +60,6 @@ func (u *userRepo) Create(user User) (*User, error) {
 }
 
 func (u *userRepo) Find(email string, password string) (*User, error) {
-
-	fmt.Println("Email:", email, "Password:", password)
 
 	query := `
 		SELECT id, name, email, password, is_owner, created_at, updated_at
