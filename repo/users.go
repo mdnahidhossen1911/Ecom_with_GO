@@ -50,6 +50,9 @@ func (u *userRepo) Create(user User) (*User, error) {
 
 	if rows.Next() {
 		err = rows.Scan(&user.ID)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if user.ID != "" {

@@ -47,6 +47,9 @@ func (p *productRepo) Create(product Product) (*Product, error) {
 
 	if rows.Next() {
 		err = rows.Scan(&product.ID, &product.CreatedAt, &product.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if product.ID != "" {
@@ -122,4 +125,3 @@ func (p *productRepo) Update(pr Product) (*Product, error) {
 
 	return nil, errors.New("product not found")
 }
-
