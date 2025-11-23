@@ -6,8 +6,9 @@ import (
 	"ecom_project/repo"
 	"ecom_project/rest"
 	"ecom_project/rest/handlers/product"
-	"ecom_project/rest/handlers/user"
+	userHandler "ecom_project/rest/handlers/user"
 	"ecom_project/rest/middleware"
+	"ecom_project/user"
 	"fmt"
 	"os"
 )
@@ -30,13 +31,17 @@ func Serve() {
 		return
 	}
 
+	// repos
 	userRepo := repo.NewUserRepo(dbCon)
 	productRepo := repo.NewProductRepo(dbCon)
+
+	//domains
+	usrService := user.NewService(userRepo)
 
 	middleware := middleware.NewConfigMiddleware(config)
 
 	productsHandler := product.NewHandler(middleware, productRepo)
-	userHandler := user.NewHandler(userRepo, *config)
+	userHandler := userHandler.NewHandler(config, usrService)
 
 	server := rest.NewServer(config, productsHandler, userHandler)
 	server.Start()

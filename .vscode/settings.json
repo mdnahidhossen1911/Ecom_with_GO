@@ -1,3 +1,11 @@
 {
-    "powermode.shake.enabled": false
+    "powermode.shake.enabled": false,
+    "powermode.explosions.enabled": true,
+    "powermode.presets": "flames",
+    "powermode.enabled": true,
+    "powermode.combo.counterEnabled": "hide",
+    "powermode.combo.location": "off",
+    "powermode.combo.timerEnabled": "hide",
+    "files.autoSave": "afterDelay",
+    "files.autoSaveWhenNoErrors": true
 }

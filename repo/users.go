@@ -4,6 +4,9 @@ import (
 	"errors"
 	"time"
 
+	"ecom_project/domain"
+	"ecom_project/user"
+
 	"github.com/jmoiron/sqlx"
 )
 
@@ -18,13 +21,7 @@ type User struct {
 }
 
 type UserRepo interface {
-	Create(user User) (*User, error)
-	Get(userID string) (*User, error)
-	Find(email string, password string) (*User, error)
-
-	List() ([]*User, error)
-	Delete(userID string) error
-	Update(user User) (*User, error)
+	user.UserRepo
 }
 
 type userRepo struct {
@@ -37,7 +34,7 @@ func NewUserRepo(dbCon *sqlx.DB) UserRepo {
 	}
 }
 
-func (u *userRepo) Create(user User) (*User, error) {
+func (u *userRepo) Create(user domain.User) (*domain.User, error) {
 
 	query := `INSERT INTO users (name, email, password, is_owner) 
 	VALUES (:name, :email, :password, :is_owner)
@@ -62,7 +59,7 @@ func (u *userRepo) Create(user User) (*User, error) {
 	return &user, nil
 }
 
-func (u *userRepo) Find(email string, password string) (*User, error) {
+func (u *userRepo) Find(email string, password string) (*domain.User, error) {
 
 	query := `
 		SELECT id, name, email, password, is_owner, created_at, updated_at
@@ -71,7 +68,7 @@ func (u *userRepo) Find(email string, password string) (*User, error) {
 		LIMIT 1;
 	`
 
-	var user User
+	var user domain.User
 
 	err := u.dbCon.Get(&user, query, email, password)
 	if err != nil {
@@ -81,7 +78,7 @@ func (u *userRepo) Find(email string, password string) (*User, error) {
 	return &user, nil
 }
 
-func (u *userRepo) Get(userID string) (*User, error) {
+func (u *userRepo) Get(userID string) (*domain.User, error) {
 	query := `
 		SELECT id, name, email, password, is_owner, created_at, updated_at
 		FROM users
@@ -89,7 +86,7 @@ func (u *userRepo) Get(userID string) (*User, error) {
 		LIMIT 1;
 	`
 
-	var user User
+	var user domain.User
 
 	err := u.dbCon.Get(&user, query, userID)
 	if err != nil {
@@ -99,13 +96,13 @@ func (u *userRepo) Get(userID string) (*User, error) {
 	return &user, nil
 }
 
-func (u *userRepo) List() ([]*User, error) {
+func (u *userRepo) List() ([]*domain.User, error) {
 	query := `
 		SELECT id, name, email, password, is_owner, created_at, updated_at
 		FROM users;
 	`
 
-	var users []*User
+	var users []*domain.User
 
 	err := u.dbCon.Select(&users, query)
 	if err != nil {
@@ -115,7 +112,7 @@ func (u *userRepo) List() ([]*User, error) {
 	return users, nil
 }
 
-func (u *userRepo) Update(user User) (*User, error) {
+func (u *userRepo) Update(user domain.User) (*domain.User, error) {
 	query := `
 		UPDATE users
 		SET 
@@ -128,7 +125,7 @@ func (u *userRepo) Update(user User) (*User, error) {
 		RETURNING id, name, email, password, is_owner, created_at, updated_at;
 	`
 
-	var updatedUser User
+	var updatedUser domain.User
 
 	err := u.dbCon.QueryRow(
 		query,

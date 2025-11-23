@@ -1,12 +1,11 @@
 package user
 
 import (
-	"ecom_project/repo"
+	"ecom_project/domain"
 	"ecom_project/util"
 	"encoding/json"
 	"net/http"
 )
-
 
 type ReqCreateUser struct {
 	Name     string `json:"name"`
@@ -27,7 +26,7 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	newPassword := util.SecPass(newUser.Password)
 
-	user, err := h.repo.Create(repo.User{
+	user, err := h.svc.Create(domain.User{
 		Name:     newUser.Name,
 		Email:    newUser.Email,
 		Password: newPassword,

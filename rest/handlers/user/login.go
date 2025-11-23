@@ -25,7 +25,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	newPassword := util.SecPass(user.Password)
 
-	validuser, err := h.repo.Find(user.Email, newPassword)
+	validuser, err := h.svc.Find(user.Email, newPassword)
 	if err != nil {
 		util.SendError(w, "Invalid Credential "+err.Error(), http.StatusNotFound)
 		return
