@@ -1,7 +1,7 @@
 package product
 
 import (
-	"ecom_project/repo"
+	"ecom_project/domain"
 	"ecom_project/util"
 	"encoding/json"
 	"net/http"
@@ -18,14 +18,14 @@ func (h *Handler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 
 	decoder := json.NewDecoder(r.Body)
 	var newProduct ReqCreateProduct
-	
+
 	err := decoder.Decode(&newProduct)
 	if err != nil {
 		util.SendError(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
 
-	UpdateProduct, err := h.productRepo.Update(repo.Product{
+	UpdateProduct, err := h.svc.Update(domain.Product{
 		ID:          id,
 		Title:       newProduct.Title,
 		Description: newProduct.Description,

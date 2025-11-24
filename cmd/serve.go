@@ -3,9 +3,10 @@ package cmd
 import (
 	"ecom_project/config"
 	"ecom_project/infra/db"
+	"ecom_project/product"
 	"ecom_project/repo"
 	"ecom_project/rest"
-	"ecom_project/rest/handlers/product"
+	productHandler "ecom_project/rest/handlers/product"
 	userHandler "ecom_project/rest/handlers/user"
 	"ecom_project/rest/middleware"
 	"ecom_project/user"
@@ -37,10 +38,10 @@ func Serve() {
 
 	//domains
 	usrService := user.NewService(userRepo)
-
+	prdService := product.NewService(productRepo)
 	middleware := middleware.NewConfigMiddleware(config)
 
-	productsHandler := product.NewHandler(middleware, productRepo)
+	productsHandler := productHandler.NewHandler(middleware, prdService)
 	userHandler := userHandler.NewHandler(config, usrService)
 
 	server := rest.NewServer(config, productsHandler, userHandler)

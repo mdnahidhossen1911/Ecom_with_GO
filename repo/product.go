@@ -3,25 +3,14 @@ package repo
 import (
 	"errors"
 
+	"ecom_project/domain"
+	"ecom_project/product"
+
 	"github.com/jmoiron/sqlx"
 )
 
-type Product struct {
-	ID          string  `json:"id" db:"id"`
-	Title       string  `json:"title" db:"title"`
-	Description string  `json:"description" db:"description"`
-	Price       float64 `json:"price" db:"price"`
-	ImageURL    string  `json:"image_url" db:"image_url"`
-	CreatedAt   string  `json:"created_at" db:"created_at"`
-	UpdatedAt   string  `json:"updated_at" db:"updated_at"`
-}
-
 type ProductRepo interface {
-	Create(product Product) (*Product, error)
-	Get(productID string) (*Product, error)
-	List() ([]*Product, error)
-	Delete(productID string) error
-	Update(pr Product) (*Product, error)
+	product.ProductRepo
 }
 
 type productRepo struct {
@@ -34,7 +23,7 @@ func NewProductRepo(db *sqlx.DB) ProductRepo {
 	return repo
 }
 
-func (p *productRepo) Create(product Product) (*Product, error) {
+func (p *productRepo) Create(product domain.Product) (*domain.Product, error) {
 
 	query := `INSERT INTO products (title, description, price, image_url) 
 	VALUES (:title, :description, :price, :image_url)
@@ -59,12 +48,12 @@ func (p *productRepo) Create(product Product) (*Product, error) {
 	return &product, nil
 }
 
-func (p *productRepo) Get(productID string) (*Product, error) {
+func (p *productRepo) Get(productID string) (*domain.Product, error) {
 
 	query := `SELECT *
 	FROM products WHERE id=$1`
 
-	var product Product
+	var product domain.Product
 	err := p.db.Get(&product, query, productID)
 	if err != nil {
 		return nil, errors.New("product not found")
@@ -73,10 +62,10 @@ func (p *productRepo) Get(productID string) (*Product, error) {
 	return &product, nil
 }
 
-func (p *productRepo) List() ([]*Product, error) {
+func (p *productRepo) List() ([]*domain.Product, error) {
 	query := `SELECT * FROM products`
 
-	var products []*Product
+	var products []*domain.Product
 	err := p.db.Select(&products, query)
 	if err != nil {
 		return nil, err
@@ -100,7 +89,7 @@ func (p *productRepo) Delete(productID string) error {
 	return nil
 }
 
-func (p *productRepo) Update(pr Product) (*Product, error) {
+func (p *productRepo) Update(pr domain.Product) (*domain.Product, error) {
 	query := `
 		UPDATE products 
 		SET 
