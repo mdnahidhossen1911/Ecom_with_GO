@@ -24,8 +24,8 @@ func (s *service) Get(productID string) (*domain.Product, error) {
 	return s.prdRepo.Get(productID)
 }
 
-func (s *service) List() ([]*domain.Product, error) {
-	return s.prdRepo.List()
+func (s *service) List(page, limit int64) ([]*domain.Product, error) {
+	return s.prdRepo.List(page, limit)
 }
 
 func (s *service) Update(pr domain.Product) (*domain.Product, error) {
