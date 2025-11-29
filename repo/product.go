@@ -17,6 +17,8 @@ type productRepo struct {
 	db *sqlx.DB
 }
 
+
+
 func NewProductRepo(db *sqlx.DB) ProductRepo {
 
 	repo := &productRepo{db: db}
@@ -63,9 +65,9 @@ func (p *productRepo) Get(productID string) (*domain.Product, error) {
 }
 
 func (p *productRepo) List(page, limit int64) ([]*domain.Product, error) {
-	
+
 	offset := ((page - 1) * limit) + 1
-	
+
 	query := `
 		SELECT *
 		FROM products
@@ -78,6 +80,16 @@ func (p *productRepo) List(page, limit int64) ([]*domain.Product, error) {
 	}
 
 	return products, nil
+}
+
+func (p *productRepo) Count() (int64, error) {
+	query := `SELECT COUNT(*) FROM products`
+	var count int64
+	err := p.db.QueryRow(query).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
 }
 
 func (p *productRepo) Delete(productID string) error {

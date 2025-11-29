@@ -6,6 +6,8 @@ type service struct {
 	prdRepo ProductRepo
 }
 
+
+
 func NewService(prdRepo ProductRepo) Service {
 	return &service{
 		prdRepo: prdRepo,
@@ -26,6 +28,11 @@ func (s *service) Get(productID string) (*domain.Product, error) {
 
 func (s *service) List(page, limit int64) ([]*domain.Product, error) {
 	return s.prdRepo.List(page, limit)
+}
+
+
+func (s *service) Count() (int64, error) {
+	return s.prdRepo.Count()
 }
 
 func (s *service) Update(pr domain.Product) (*domain.Product, error) {
