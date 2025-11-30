@@ -24,7 +24,7 @@ func SendPage(w http.ResponseWriter, data any, page, limit, totalItem int64) {
 			Page:      page,
 			Limit:     limit,
 			TotalItem: totalItem,
-			TotalPage: totalItem / limit,
+			TotalPage: (totalItem + limit - 1) / limit,
 		},
 	}
 
