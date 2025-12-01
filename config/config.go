@@ -59,14 +59,14 @@ func loadConfig() {
 
 	fmt.Printf("Configuration loaded: \nVersion=%s,\nServiceName=%s,\nPort=%s\n", version, serviceName, port)
 
-	loadDBConfig()
-
 	configuration = &Config{
 		Version:      version,
 		ServiceName:  serviceName,
 		Port:         port,
 		JwtSecureKey: jwtSecurekey,
 	}
+
+	loadDBConfig()
 
 }
 

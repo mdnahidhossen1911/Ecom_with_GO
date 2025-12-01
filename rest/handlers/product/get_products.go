@@ -4,6 +4,7 @@ import (
 	"ecom_project/util"
 	"net/http"
 	"strconv"
+	"sync"
 )
 
 func (h *Handler) GetProducts(w http.ResponseWriter, r *http.Request) {
@@ -19,14 +20,35 @@ func (h *Handler) GetProducts(w http.ResponseWriter, r *http.Request) {
 	if page <= 0 {
 		page = 1
 	}
-
 	if limit <= 0 {
 		limit = 10
 	}
 
-	products, err := h.svc.List(page, limit)
-	if err != nil {
-		util.SendError(w, "Failed to retrieve products: "+err.Error(), http.StatusInternalServerError)
+	var (
+		products any
+		count    int64
+		errList  error
+		errCount error
+	)
+
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		products, errList = h.svc.List(page, limit)
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		count, errCount = h.svc.Count()
+	}()
+
+	wg.Wait()
+
+	if errList != nil {
+		util.SendError(w, "Failed to retrieve products: "+errList.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -35,12 +57,10 @@ func (h *Handler) GetProducts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cnt, err := h.svc.Count()
-	if err != nil {
-		util.SendError(w, "Failed to retrieve products count: "+err.Error(), http.StatusInternalServerError)
+	if errCount != nil {
+		util.SendError(w, "Failed to retrieve products count: "+errCount.Error(), http.StatusInternalServerError)
 		return
 	}
 
-
-	util.SendPage(w, products, page, limit, cnt)
+	util.SendPage(w, products, page, limit, count)
 }
