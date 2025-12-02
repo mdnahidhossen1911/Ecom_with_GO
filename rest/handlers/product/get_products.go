@@ -1,10 +1,10 @@
 package product
 
 import (
+	"ecom_project/domain"
 	"ecom_project/util"
 	"net/http"
 	"strconv"
-	"sync"
 )
 
 func (h *Handler) GetProducts(w http.ResponseWriter, r *http.Request) {
@@ -24,43 +24,38 @@ func (h *Handler) GetProducts(w http.ResponseWriter, r *http.Request) {
 		limit = 10
 	}
 
-	var (
-		products any
-		count    int64
-		errList  error
-		errCount error
-	)
+	var productList = make(chan []*domain.Product)
+	var cont = make(chan int64)
 
-	var wg sync.WaitGroup
-
-	wg.Add(1)
 	go func() {
-		defer wg.Done()
-		products, errList = h.svc.List(page, limit)
+		products, errList := h.svc.List(page, limit)
+		if errList != nil {
+			util.SendError(w, "Failed to retrieve products: "+errList.Error(), http.StatusInternalServerError)
+			return
+		}
+		if products == nil {
+			util.SendError(w, "Not found products", http.StatusNotFound)
+			return
+		}
+
+		productList <- products
+
 	}()
 
-	wg.Add(1)
 	go func() {
-		defer wg.Done()
-		count, errCount = h.svc.Count()
+		count, errCount := h.svc.Count()
+		if errCount != nil {
+			util.SendError(w, "Failed to retrieve products count: "+errCount.Error(), http.StatusInternalServerError)
+			return
+
+		}
+
+		cont <- count
+
 	}()
 
-	wg.Wait()
+	pdtList := <-productList
+	count := <-cont
 
-	if errList != nil {
-		util.SendError(w, "Failed to retrieve products: "+errList.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if products == nil {
-		util.SendError(w, "Not found products", http.StatusNotFound)
-		return
-	}
-
-	if errCount != nil {
-		util.SendError(w, "Failed to retrieve products count: "+errCount.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	util.SendPage(w, products, page, limit, count)
+	util.SendPage(w, pdtList, page, limit, count)
 }
