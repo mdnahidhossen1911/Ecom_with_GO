@@ -11,38 +11,40 @@ import (
 )
 
 type Server struct {
-	Config 	  *config.Config
+	Config         *config.Config
 	ProductHandler *product.Handler
 	UserHandler    *user.Handler
 }
 
 func NewServer(config *config.Config, productHandler *product.Handler, userHandler *user.Handler) *Server {
-    return &Server{
-        Config:         config,
-        ProductHandler: productHandler,
-        UserHandler:    userHandler,
-    }
+	return &Server{
+		Config:         config,
+		ProductHandler: productHandler,
+		UserHandler:    userHandler,
+	}
 }
 
 func (Server *Server) Start() {
-    manager := middleware.NewManager()
-    mux := http.NewServeMux()
+	mux := http.NewServeMux()
 
-    manager.Use(middleware.CORS)
-    manager.Use(middleware.Preflight)
-    manager.Use(middleware.Logger)
+    // Initialize middleware manager
+	manager := middleware.NewManager()
 
-    Server.ProductHandler.RegisterRoutes(mux, manager)
-    Server.UserHandler.RegisterRoutes(mux, manager)
+	manager.Use(middleware.CORS)
+	manager.Use(middleware.Preflight)
+	manager.Use(middleware.Logger)
+	manager.Use(middleware.RateLimit)
 
-    wrappedMux := manager.ApplyToMux(mux)
-    addr := fmt.Sprintf(":%s", Server.Config.Port)
+	Server.ProductHandler.RegisterRoutes(mux, manager)
+	Server.UserHandler.RegisterRoutes(mux, manager)
 
-    fmt.Println("Server is listening on port", Server.Config.Port, "...")
-    err := http.ListenAndServe(addr, wrappedMux)
-    if err != nil {
-        fmt.Println("Error starting server:", err)
-        os.Exit(1)
-    }
+	wrappedMux := manager.ApplyToMux(mux)
+	addr := fmt.Sprintf(":%s", Server.Config.Port)
+
+	fmt.Println("Server is listening on port", Server.Config.Port, "...")
+	err := http.ListenAndServe(addr, wrappedMux)
+	if err != nil {
+		fmt.Println("Error starting server:", err)
+		os.Exit(1)
+	}
 }
-
